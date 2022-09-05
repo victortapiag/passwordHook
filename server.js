@@ -5,6 +5,7 @@ const app = express();
 
 
 app.use(express.static("public"));
+require('dotenv').config();
 
 
 app.get("/", (request, response) => {
@@ -15,6 +16,9 @@ app.get("/", (request, response) => {
 // basic auth and parsing
 const basicAuth = require("express-basic-auth");
 const bodyParser = require("body-parser");
+
+var domains = process.env.DOMAINS.split(', ');
+  console.log('Passwords accepted from these domains: ', domains);
 
 app.use(bodyParser.json());
 
@@ -28,21 +32,48 @@ app.use(bodyParser.json());
 //Password Inline Hook POST from Okta (endpoint: passwordHook)
 
 app.post("/passwordHook", async (request, response) => {
+  console.log(request.headers);
   console.log(request.body.data);
+
+  let userid = request.body.data.context.credential.username;
+  console.log(userid);
+  let ampersandPos = userid.indexOf("@");
+  console.log("@ is at: ", ampersandPos);
+  let userDomain = userid.substr(ampersandPos+1).toLowerCase();
+  console.log(userDomain);
+
+  if (domains.includes(userDomain)) {
+	console.log("TRUE");
+	var returnValue = {
+    	commands: [
+      		{
+        	type: "com.okta.action.update",
+        	value:
+          		{
+            		"credential":"VERIFIED"
+          		}
+      		}
+    		],
+  	}
+	}
+  else {
+	console.log("FALSE");
+	var returnValue = {
+    		commands: [
+      		{
+        	type: "com.okta.action.update",
+       	 	value:
+          		{
+            		"credential":"UNVERIFIED"
+          		}
+      		}
+    		],
+  	}
+	}
+
 
   /*if (user.username & user.password) then */
 
-  var returnValue = {
-    commands: [
-      {
-        type: "com.okta.action.update",
-        value: 
-          { 
-            "credential":"VERIFIED"
-          }
-      }
-    ],
-  }
 /*
  *
  * End of Password Inline Hook Code
