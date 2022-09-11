@@ -42,33 +42,24 @@ app.post("/passwordHook", async (request, response) => {
   let userDomain = userid.substr(ampersandPos+1).toLowerCase();
   console.log(userDomain);
 
+  var returnValue = {
+             commands: [
+             {
+             type: "com.okta.action.update",
+             value:
+                     {
+                     "credential":"UNVERIFIED"
+                     }
+             }
+             ],
+     }
+
   if (domains.includes(userDomain)) {
 	console.log("TRUE");
-	var returnValue = {
-    	commands: [
-      		{
-        	type: "com.okta.action.update",
-        	value:
-          		{
-            		"credential":"VERIFIED"
-          		}
-      		}
-    		],
-  	}
+	returnValue.commands[0].value.credential = "VERIFIED"
 	}
   else {
 	console.log("FALSE");
-	var returnValue = {
-    		commands: [
-      		{
-        	type: "com.okta.action.update",
-       	 	value:
-          		{
-            		"credential":"UNVERIFIED"
-          		}
-      		}
-    		],
-  	}
 	}
 
 
